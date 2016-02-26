@@ -39,6 +39,14 @@ class Docker::File {
         has Str @.args;
     }
 
+    class EntryPointShell does Instruction[ENTRYPOINT] {
+        has Str $.command;
+    }
+
+    class EntryPointExec does Instruction[ENTRYPOINT] {
+        has Str @.args;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -110,6 +118,10 @@ class Docker::File {
 
         token directive:sym<CMD> {
             <sym> \h+ <shell-or-exec('CMD')> \n
+        }
+
+        token directive:sym<ENTRYPOINT> {
+            <sym> \h+ <shell-or-exec('ENTRYPOINT')> \n
         }
 
         token shell-or-exec($directive) {
@@ -190,6 +202,15 @@ class Docker::File {
             }
             orwith $<shell-or-exec><exec> {
                 make CommandExec.new(args => .made);
+            }
+        }
+
+        method directive:sym<ENTRYPOINT>($/) {
+            with $<shell-or-exec><shell> {
+                make EntryPointShell.new(command => .made);
+            }
+            orwith $<shell-or-exec><exec> {
+                make EntryPointExec.new(args => .made);
             }
         }
 

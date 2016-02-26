@@ -150,4 +150,44 @@ subtest {
     is $ins.args, </usr/bin/wc --help>, 'Correct args';
 }, 'CMD instruction, exec form';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENTRYPOINT exec top -b
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::EntryPointShell, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENTRYPOINT, 'Correct instruction';
+    is $ins.command, 'exec top -b', 'Correct command';
+}, 'ENTRYPOINT instruction, shell form';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENTRYPOINT exec\
+        top -b
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::EntryPointShell, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENTRYPOINT, 'Correct instruction';
+    is $ins.command, 'exec top -b', 'Correct command';
+}, 'ENTRYPOINT instruction, shell form multi-line';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::EntryPointExec, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENTRYPOINT, 'Correct instruction';
+    is $ins.args, </usr/sbin/apache2ctl -D FOREGROUND>, 'Correct args';
+}, 'ENTRYPOINT instruction, exec form';
+
 done-testing;
