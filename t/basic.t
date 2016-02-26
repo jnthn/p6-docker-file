@@ -229,4 +229,30 @@ subtest {
     is $ins.dir, '/a', 'Correct dir';
 }, 'WORKDIR instruction';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        STOPSIGNAL 9
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::StopSignal, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::STOPSIGNAL, 'Correct instruction';
+    is $ins.signal, 9, 'Correct signal';
+}, 'STOPSIGNAL instruction, integer case';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        STOPSIGNAL SIGKILL
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::StopSignal, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::STOPSIGNAL, 'Correct instruction';
+    is $ins.signal, 'SIGKILL', 'Correct signal';
+}, 'STOPSIGNAL instruction, name case';
+
 done-testing;

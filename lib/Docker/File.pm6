@@ -55,6 +55,15 @@ class Docker::File {
         has Str $.dir;
     }
 
+    subset SignalIdentifier where -> $sig {
+        $sig ~~ Int ||
+        $sig ~~ Str && $sig ~~ /^SIG\w+$/
+    }
+
+    class StopSignal does Instruction[STOPSIGNAL] {
+        has SignalIdentifier $.signal;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -138,6 +147,14 @@ class Docker::File {
 
         token directive:sym<WORKDIR> {
             <sym> \h+ $<dir>=[\N+] \n
+        }
+
+        token directive:sym<STOPSIGNAL> {
+            <sym> \h+
+            [
+            | $<signum>=[\d+]
+            | $<signame>=[SIG\w+]
+            ] \h* \n
         }
 
         token shell-or-exec($directive) {
@@ -236,6 +253,15 @@ class Docker::File {
 
         method directive:sym<WORKDIR>($/) {
             make WorkDir.new(dir => ~$<dir>);
+        }
+
+        method directive:sym<STOPSIGNAL>($/) {
+            with $<signum> {
+                make StopSignal.new(signal => +$_);
+            }
+            else {
+                make StopSignal.new(signal => ~$<signame>);
+            }
         }
 
         method arglist($/) {
