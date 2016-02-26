@@ -255,4 +255,32 @@ subtest {
     is $ins.signal, 'SIGKILL', 'Correct signal';
 }, 'STOPSIGNAL instruction, name case';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ONBUILD RUN /usr/local/bin/python-build --dir /app/src
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::OnBuild, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ONBUILD, 'Correct instruction';
+    my $obs = $ins.build;
+    isa-ok $obs, Docker::File::RunShell, 'Nested instruction has correct type';
+    is $obs.instruction, Docker::File::InstructionName::RUN,
+        'Nested instruction has correct instruction';
+    is $obs.command, '/usr/local/bin/python-build --dir /app/src',
+        'Nested instruction has correct command';
+}, 'ONBUILD instruction, valid';
+
+for <<FROM ubuntu  MAINTAINER Melaina  ONBUILD "RUN /bin/sh">> -> $ins, $arg {
+    my $file = qq:to/DOCKER/;
+        FROM ubuntu
+        ONBUILD $ins $arg
+        DOCKER
+    throws-like { Docker::File.parse($file) },
+        X::Docker::File::OnBuild,
+        bad-instruction => $ins;
+}
+
 done-testing;

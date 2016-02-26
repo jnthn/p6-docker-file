@@ -2,6 +2,11 @@ class X::Docker::File::TagAndDigest is Exception {
     method message() { "FROM cannot have both a tag and a digest" }
 }
 
+class X::Docker::File::OnBuild is Exception {
+    has $.bad-instruction;
+    method message() { "ONBUILD may not be used with '$!bad-instruction'" }
+}
+
 class Docker::File {
     enum InstructionName <
         MAINTAINER RUN CMD LABEL EXPOSE ENV ADD COPY ENTRYPOINT
@@ -62,6 +67,10 @@ class Docker::File {
 
     class StopSignal does Instruction[STOPSIGNAL] {
         has SignalIdentifier $.signal;
+    }
+
+    class OnBuild does Instruction[ONBUILD] {
+        has Instruction $.build;
     }
 
     class Image {
@@ -155,6 +164,15 @@ class Docker::File {
             | $<signum>=[\d+]
             | $<signame>=[SIG\w+]
             ] \h* \n
+        }
+
+        token directive:sym<ONBUILD> {
+            <sym> \h+
+            [
+            || $<bad>=< FROM MAINTAINER ONBUILD > \h
+               { die X::Docker::File::OnBuild.new(bad-instruction => ~$<bad>) }
+            || <directive>
+            ]
         }
 
         token shell-or-exec($directive) {
@@ -262,6 +280,10 @@ class Docker::File {
             else {
                 make StopSignal.new(signal => ~$<signame>);
             }
+        }
+
+        method directive:sym<ONBUILD>($/) {
+            make OnBuild.new(build => $<directive>.made);
         }
 
         method arglist($/) {
