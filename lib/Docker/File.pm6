@@ -47,6 +47,10 @@ class Docker::File {
         has Str @.args;
     }
 
+    class User does Instruction[USER] {
+        has Str $.username;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -122,6 +126,10 @@ class Docker::File {
 
         token directive:sym<ENTRYPOINT> {
             <sym> \h+ <shell-or-exec('ENTRYPOINT')> \n
+        }
+
+        token directive:sym<USER> {
+            <sym> \h+ $<username>=[\S+] \h* \n
         }
 
         token shell-or-exec($directive) {
@@ -212,6 +220,10 @@ class Docker::File {
             orwith $<shell-or-exec><exec> {
                 make EntryPointExec.new(args => .made);
             }
+        }
+
+        method directive:sym<USER>($/) {
+            make User.new(username => ~$<username>);
         }
 
         method arglist($/) {

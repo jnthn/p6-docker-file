@@ -190,4 +190,30 @@ subtest {
     is $ins.args, </usr/sbin/apache2ctl -D FOREGROUND>, 'Correct args';
 }, 'ENTRYPOINT instruction, exec form';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::EntryPointExec, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENTRYPOINT, 'Correct instruction';
+    is $ins.args, </usr/sbin/apache2ctl -D FOREGROUND>, 'Correct args';
+}, 'ENTRYPOINT instruction, exec form';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        USER daemon
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::User, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::USER, 'Correct instruction';
+    is $ins.username, 'daemon', 'Correct username';
+}, 'USER instruction';
+
 done-testing;
