@@ -114,7 +114,7 @@ class Docker::File {
         token image {
             <insignificant-lines>
             <from>
-            <directive>* %% <insignificant-lines>
+            <instruction>* %% <insignificant-lines>
         }
 
         token from {
@@ -132,33 +132,33 @@ class Docker::File {
             \w <[\w/-]>+
         }
 
-        proto token directive { * }
+        proto token instruction { * }
 
-        token directive:sym<MAINTAINER> {
+        token instruction:sym<MAINTAINER> {
             <sym> \h+ $<name>=[\N+] \n
         }
 
-        token directive:sym<RUN> {
+        token instruction:sym<RUN> {
             <sym> \h+ <shell-or-exec('RUN')> \n
         }
 
-        token directive:sym<CMD> {
+        token instruction:sym<CMD> {
             <sym> \h+ <shell-or-exec('CMD')> \n
         }
 
-        token directive:sym<ENTRYPOINT> {
+        token instruction:sym<ENTRYPOINT> {
             <sym> \h+ <shell-or-exec('ENTRYPOINT')> \n
         }
 
-        token directive:sym<USER> {
+        token instruction:sym<USER> {
             <sym> \h+ $<username>=[\S+] \h* \n
         }
 
-        token directive:sym<WORKDIR> {
+        token instruction:sym<WORKDIR> {
             <sym> \h+ $<dir>=[\N+] \n
         }
 
-        token directive:sym<STOPSIGNAL> {
+        token instruction:sym<STOPSIGNAL> {
             <sym> \h+
             [
             | $<signum>=[\d+]
@@ -166,23 +166,23 @@ class Docker::File {
             ] \h* \n
         }
 
-        token directive:sym<ONBUILD> {
+        token instruction:sym<ONBUILD> {
             <sym> \h+
             [
             || $<bad>=< FROM MAINTAINER ONBUILD > \h
                { die X::Docker::File::OnBuild.new(bad-instruction => ~$<bad>) }
-            || <directive>
+            || <instruction>
             ]
         }
 
-        token shell-or-exec($directive) {
-            | <?[[]> <exec=.arglist($directive)>
+        token shell-or-exec($instruction) {
+            | <?[[]> <exec=.arglist($instruction)>
             | {} <shell=.multiline-command>
         }
 
-        token arglist($directive) {
+        token arglist($instruction) {
             || '[' \h* <arg>+ % [\h* ',' \h*] \h* ']'
-            || { die "Cannot parse args to $directive" }
+            || { die "Cannot parse args to $instruction" }
         }
 
         token arg {
@@ -224,7 +224,7 @@ class Docker::File {
         }
 
         method image($/) {
-            my @entries = $<directive>.map(*.made);
+            my @entries = $<instruction>.map(*.made);
             my $f = $<from>;
             make Image.new(
                 from-short => ~$f<name>,
@@ -234,11 +234,11 @@ class Docker::File {
             );
         }
 
-        method directive:sym<MAINTAINER>($/) {
+        method instruction:sym<MAINTAINER>($/) {
             make Maintainer.new(name => ~$<name>)
         }
 
-        method directive:sym<RUN>($/) {
+        method instruction:sym<RUN>($/) {
             with $<shell-or-exec><shell> {
                 make RunShell.new(command => .made);
             }
@@ -247,7 +247,7 @@ class Docker::File {
             }
         }
 
-        method directive:sym<CMD>($/) {
+        method instruction:sym<CMD>($/) {
             with $<shell-or-exec><shell> {
                 make CommandShell.new(command => .made);
             }
@@ -256,7 +256,7 @@ class Docker::File {
             }
         }
 
-        method directive:sym<ENTRYPOINT>($/) {
+        method instruction:sym<ENTRYPOINT>($/) {
             with $<shell-or-exec><shell> {
                 make EntryPointShell.new(command => .made);
             }
@@ -265,15 +265,15 @@ class Docker::File {
             }
         }
 
-        method directive:sym<USER>($/) {
+        method instruction:sym<USER>($/) {
             make User.new(username => ~$<username>);
         }
 
-        method directive:sym<WORKDIR>($/) {
+        method instruction:sym<WORKDIR>($/) {
             make WorkDir.new(dir => ~$<dir>);
         }
 
-        method directive:sym<STOPSIGNAL>($/) {
+        method instruction:sym<STOPSIGNAL>($/) {
             with $<signum> {
                 make StopSignal.new(signal => +$_);
             }
@@ -282,8 +282,8 @@ class Docker::File {
             }
         }
 
-        method directive:sym<ONBUILD>($/) {
-            make OnBuild.new(build => $<directive>.made);
+        method instruction:sym<ONBUILD>($/) {
+            make OnBuild.new(build => $<instruction>.made);
         }
 
         method arglist($/) {
