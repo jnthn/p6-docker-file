@@ -216,4 +216,17 @@ subtest {
     is $ins.username, 'daemon', 'Correct username';
 }, 'USER instruction';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        WORKDIR /a
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::WorkDir, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::WORKDIR, 'Correct instruction';
+    is $ins.dir, '/a', 'Correct dir';
+}, 'WORKDIR instruction';
+
 done-testing;

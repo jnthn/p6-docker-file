@@ -51,6 +51,10 @@ class Docker::File {
         has Str $.username;
     }
 
+    class WorkDir does Instruction[WORKDIR] {
+        has Str $.dir;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -130,6 +134,10 @@ class Docker::File {
 
         token directive:sym<USER> {
             <sym> \h+ $<username>=[\S+] \h* \n
+        }
+
+        token directive:sym<WORKDIR> {
+            <sym> \h+ $<dir>=[\N+] \n
         }
 
         token shell-or-exec($directive) {
@@ -224,6 +232,10 @@ class Docker::File {
 
         method directive:sym<USER>($/) {
             make User.new(username => ~$<username>);
+        }
+
+        method directive:sym<WORKDIR>($/) {
+            make WorkDir.new(dir => ~$<dir>);
         }
 
         method arglist($/) {
