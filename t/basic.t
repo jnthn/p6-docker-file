@@ -528,4 +528,56 @@ subtest {
     is $ins.labels<other>, 'value3', 'Correct label (3)';
 }, 'LABEL with multiple values on multiple lines';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        VOLUME /foo
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Volume, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::VOLUME, 'Correct instruction';
+    is $ins.volumes, ['/foo'], 'Correct volume';
+}, 'VOLUME, plain form, one path';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        VOLUME /foo /bar/baz
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Volume, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::VOLUME, 'Correct instruction';
+    is $ins.volumes, </foo /bar/baz>, 'Correct volumes';
+}, 'VOLUME, plain form, multiple paths';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        VOLUME ["/foo"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Volume, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::VOLUME, 'Correct instruction';
+    is $ins.volumes, ['/foo'], 'Correct volume';
+}, 'VOLUME, array form, one path';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        VOLUME ["/foo", "/bar/baz", "/var/stuff with space"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Volume, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::VOLUME, 'Correct instruction';
+    is $ins.volumes, <</foo /bar/baz "/var/stuff with space">>, 'Correct volumes';
+}, 'VOLUME, array form, multiple paths';
+
 done-testing;

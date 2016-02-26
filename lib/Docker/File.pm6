@@ -96,6 +96,10 @@ class Docker::File {
         has Str %.labels;
     }
 
+    class Volume does Instruction[VOLUME] {
+        has Str @.volumes;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -219,6 +223,10 @@ class Docker::File {
 
         token instruction:sym<LABEL> {
             <sym> \h+ <label>+ % [\h+ | \h* \\ \n \h*] \n
+        }
+
+        token instruction:sym<VOLUME> {
+            <sym> \h+ <file-list('VOLUME')> \h* \n
         }
 
         token label {
@@ -369,6 +377,10 @@ class Docker::File {
 
         method instruction:sym<LABEL>($/) {
             make Label.new(labels => $<label>.map(*.made));
+        }
+
+        method instruction:sym<VOLUME>($/) {
+            make Volume.new(volumes => $<file-list>.made);
         }
 
         method label($/) {
