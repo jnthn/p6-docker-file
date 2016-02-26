@@ -365,4 +365,60 @@ subtest {
     is $ins.destination, '/var/stuff with space', 'Correct destination';
 }, 'ADD, array form, multiple files';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        COPY foo.txt /var/stuff
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Copy, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::COPY, 'Correct instruction';
+    is $ins.sources, ['foo.txt'], 'Correct sources';
+    is $ins.destination, '/var/stuff', 'Correct destination';
+}, 'COPY, non-array form, single file';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        COPY foo.txt bar.txt /var/stuff
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Copy, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::COPY, 'Correct instruction';
+    is $ins.sources, <foo.txt bar.txt>, 'Correct sources';
+    is $ins.destination, '/var/stuff', 'Correct destination';
+}, 'COPY, non-array form, multiple files';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        COPY ["foo.txt", "/var/stuff with space"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Copy, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::COPY, 'Correct instruction';
+    is $ins.sources, ['foo.txt'], 'Correct sources';
+    is $ins.destination, '/var/stuff with space', 'Correct destination';
+}, 'COPY, array form, single file';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        COPY ["foo.txt", "bar.txt", "/var/stuff with space"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Copy, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::COPY, 'Correct instruction';
+    is $ins.sources, <foo.txt bar.txt>, 'Correct sources';
+    is $ins.destination, '/var/stuff with space', 'Correct destination';
+}, 'COPY, array form, multiple files';
+
 done-testing;

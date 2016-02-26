@@ -82,6 +82,11 @@ class Docker::File {
         has Str $.destination;
     }
 
+    class Copy does Instruction[COPY] {
+        has Str @.sources;
+        has Str $.destination;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -190,6 +195,10 @@ class Docker::File {
 
         token instruction:sym<ADD> {
             <sym> \h+ <file-list('ADD')> \h* \n
+        }
+
+        token instruction:sym<COPY> {
+            <sym> \h+ <file-list('COPY')> \h* \n
         }
 
         token shell-or-exec($instruction) {
@@ -316,6 +325,12 @@ class Docker::File {
             my @sources = $<file-list>.made;
             my $destination = @sources.pop;
             make Add.new(:@sources, :$destination);
+        }
+
+        method instruction:sym<COPY>($/) {
+            my @sources = $<file-list>.made;
+            my $destination = @sources.pop;
+            make Copy.new(:@sources, :$destination);
         }
 
         method file-list($/) {
