@@ -449,4 +449,83 @@ subtest {
     is $ins.default, 'someuser', 'Correct default';
 }, 'ARG with default';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        LABEL "com.example.vendor"="ACME Incorporated"
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Label, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::LABEL, 'Correct instruction';
+    is $ins.labels.elems, 1, 'Correct number of labels';
+    is $ins.labels<com.example.vendor>, 'ACME Incorporated', 'Correct label';
+}, 'LABEL with key and value quoted';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        LABEL com.example.label-with-value="foo"
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Label, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::LABEL, 'Correct instruction';
+    is $ins.labels.elems, 1, 'Correct number of labels';
+    is $ins.labels<com.example.label-with-value>, 'foo', 'Correct label';
+}, 'LABEL with key unquoted and value quoted';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        LABEL description="This text illustrates \
+        that label-values can span multiple lines."
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Label, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::LABEL, 'Correct instruction';
+    is $ins.labels.elems, 1, 'Correct number of labels';
+    is $ins.labels<description>,
+        'This text illustrates that label-values can span multiple lines.',
+        'Correct label';
+}, 'LABEL with multi-line value';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        LABEL multi.label1="value1" multi.label2="value2" other="value3"
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Label, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::LABEL, 'Correct instruction';
+    is $ins.labels.elems, 3, 'Correct number of labels';
+    is $ins.labels<multi.label1>, 'value1', 'Correct label (1)';
+    is $ins.labels<multi.label2>, 'value2', 'Correct label (2)';
+    is $ins.labels<other>, 'value3', 'Correct label (3)';
+}, 'LABEL with multiple values on one line';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        LABEL multi.label1="value1" \
+        multi.label2="value2" \
+        other="value3"
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Label, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::LABEL, 'Correct instruction';
+    is $ins.labels.elems, 3, 'Correct number of labels';
+    is $ins.labels<multi.label1>, 'value1', 'Correct label (1)';
+    is $ins.labels<multi.label2>, 'value2', 'Correct label (2)';
+    is $ins.labels<other>, 'value3', 'Correct label (3)';
+}, 'LABEL with multiple values on multiple lines';
+
 done-testing;

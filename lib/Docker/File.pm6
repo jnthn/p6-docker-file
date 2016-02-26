@@ -92,6 +92,10 @@ class Docker::File {
         has Cool $.default;
     }
 
+    class Label does Instruction[LABEL] {
+        has Str %.labels;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -213,6 +217,17 @@ class Docker::File {
             \n
         }
 
+        token instruction:sym<LABEL> {
+            <sym> \h+ <label>+ % [\h+ | \h* \\ \n \h*] \n
+        }
+
+        token label {
+            [
+            | <?["]> <key=.arg>
+            | $<key>=[<-[\s"=]>+]
+            ] \h* '=' \h* <value=.arg>
+        }
+
         token shell-or-exec($instruction) {
             | <?[[]> <exec=.arglist($instruction)>
             | {} <shell=.multiline-command>
@@ -229,7 +244,7 @@ class Docker::File {
         }
 
         token arg {
-            \" ~ \" [ <str> | \\ <str=.str_escape> ]*
+            \" ~ \" [ <str>  | \\\n | \\ <str=.str_escape> ]*
         }
 
         token str {
@@ -350,6 +365,15 @@ class Docker::File {
                 name => ~$<name>,
                 default => $<default> ?? ~$<default> !! Str
             );
+        }
+
+        method instruction:sym<LABEL>($/) {
+            make Label.new(labels => $<label>.map(*.made));
+        }
+
+        method label($/) {
+            my $key = $<key>.made // ~$<key>;
+            make $key => $<value>.made;
         }
 
         method file-list($/) {
