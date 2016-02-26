@@ -580,4 +580,63 @@ subtest {
     is $ins.volumes, <</foo /bar/baz "/var/stuff with space">>, 'Correct volumes';
 }, 'VOLUME, array form, multiple paths';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENV myDog Rex The Dog
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Env, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENV, 'Correct instruction';
+    is $ins.variables.elems, 1, 'Correct number of environment variables';
+    is $ins.variables<myDog>, 'Rex The Dog', 'Correct variable/value';
+}, 'ENV non-key/value form';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENV myName="John Doe"
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Env, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENV, 'Correct instruction';
+    is $ins.variables.elems, 1, 'Correct number of environment variables';
+    is $ins.variables<myName>, 'John Doe', 'Correct variable/value';
+}, 'ENV key/value quote form';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENV myCat=fluffy
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Env, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENV, 'Correct instruction';
+    is $ins.variables.elems, 1, 'Correct number of environment variables';
+    is $ins.variables<myCat>, 'fluffy', 'Correct variable/value';
+}, 'ENV key/value unquoted form';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ENV myName="John Doe" myDog=Rex\ The\ Dog \
+            myCat=fluffy
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Env, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ENV, 'Correct instruction';
+    is $ins.variables.elems, 3, 'Correct number of environment variables';
+    is $ins.variables<myName>, 'John Doe', 'Correct variable/value';
+    is $ins.variables<myDog>, 'Rex The Dog', 'Correct variable/value';
+    is $ins.variables<myCat>, 'fluffy', 'Correct variable/value';
+}, 'ENV key/value, space escaped, and multi-line form';
+
 done-testing;

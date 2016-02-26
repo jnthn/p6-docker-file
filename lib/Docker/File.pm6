@@ -100,6 +100,10 @@ class Docker::File {
         has Str @.volumes;
     }
 
+    class Env does Instruction[ENV] {
+        has Str %.variables;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -229,11 +233,28 @@ class Docker::File {
             <sym> \h+ <file-list('VOLUME')> \h* \n
         }
 
+        token instruction:sym<ENV> {
+            <sym> \h+
+            [
+            | $<key>=[<-[\s"=]>+] \h+ <![=]> $<value>=[\N+] \n
+            | <label>+ % [\h+ | \h* \\ \n \h*] \n
+            ]
+        }
+
         token label {
             [
             | <?["]> <key=.arg>
-            | $<key>=[<-[\s"=]>+]
-            ] \h* '=' \h* <value=.arg>
+            | {} <key=.unquoted-string>
+            ]
+            \h* '=' \h*
+            [
+            | <?["]> <value=.arg>
+            | {} <value=.unquoted-string>
+            ]
+        }
+
+        token unquoted-string {
+            [ $<piece>=[<-[\s"=\\]>+] ]+ % [\\ ' ']
         }
 
         token shell-or-exec($instruction) {
@@ -383,9 +404,21 @@ class Docker::File {
             make Volume.new(volumes => $<file-list>.made);
         }
 
+        method instruction:sym<ENV>($/) {
+            if $<key> {
+                make Env.new(variables => (~$<key> => ~$<value>));
+            }
+            else {
+                make Env.new(variables => $<label>.map(*.made));
+            }
+        }
+
         method label($/) {
-            my $key = $<key>.made // ~$<key>;
-            make $key => $<value>.made;
+            make $<key>.made => $<value>.made;
+        }
+
+        method unquoted-string($/) {
+            make $<piece>.map(~*).join(' ');
         }
 
         method file-list($/) {
