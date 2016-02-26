@@ -110,7 +110,7 @@ class Docker::File {
         has Str $.from-digest;
         has Entry @.entries;
 
-        submethod BUILD(:$!from-short, :$from-tag, :$from-digest, :@!entries) {
+        submethod BUILD(Str :$!from-short, Str :$from-tag, Str :$from-digest, :@!entries) {
             if $from-tag.defined && $from-digest.defined {
                 die X::Docker::File::TagAndDigest.new;
             }
@@ -132,6 +132,13 @@ class Docker::File {
 
         method instructions() {
             @!entries.grep(Instruction)
+        }
+
+        multi method Str(Image:D:) {
+            join "\n", flat
+                "FROM " ~ self.from,
+                @!entries>>.Str,
+                ""
         }
     }
 
@@ -483,5 +490,9 @@ class Docker::File {
 
     method parsefile($file, *%slurp-options) {
         self.parse(slurp($file, |%slurp-options))
+    }
+
+    multi method Str(Docker::File:D:) {
+        @!images>>.Str.join("\n")
     }
 }
