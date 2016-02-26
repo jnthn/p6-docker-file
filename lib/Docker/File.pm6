@@ -145,6 +145,7 @@ class Docker::File {
         token image {
             <insignificant-lines>
             <from>
+            <insignificant-lines>
             <instruction>* %% <insignificant-lines>
         }
 
@@ -296,12 +297,12 @@ class Docker::File {
         token insignificant-lines {
             [
             | <comment>
-            | \h+ \n
+            | \h* \n
             ]*
         }
 
         token comment {
-            '#' \N+ \n
+            '#' \N* \n
         }
     }
 
