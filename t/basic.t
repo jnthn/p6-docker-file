@@ -421,4 +421,32 @@ subtest {
     is $ins.destination, '/var/stuff with space', 'Correct destination';
 }, 'COPY, array form, multiple files';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ARG user1
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Arg, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ARG, 'Correct instruction';
+    is $ins.name, 'user1', 'Correct name';
+    nok $ins.default.defined, 'No default';
+}, 'ARG, no default';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ARG user1=someuser
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Arg, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ARG, 'Correct instruction';
+    is $ins.name, 'user1', 'Correct name';
+    is $ins.default, 'someuser', 'Correct default';
+}, 'ARG with default';
+
 done-testing;

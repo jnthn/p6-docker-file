@@ -87,6 +87,11 @@ class Docker::File {
         has Str $.destination;
     }
 
+    class Arg does Instruction[ARG] {
+        has Str $.name;
+        has Cool $.default;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -199,6 +204,13 @@ class Docker::File {
 
         token instruction:sym<COPY> {
             <sym> \h+ <file-list('COPY')> \h* \n
+        }
+
+        token instruction:sym<ARG> {
+            <sym> \h+
+            $<name>=[<-[\s=]>+] \h*
+            ['=' \h* $<default>=[\N+]]?
+            \n
         }
 
         token shell-or-exec($instruction) {
@@ -331,6 +343,13 @@ class Docker::File {
             my @sources = $<file-list>.made;
             my $destination = @sources.pop;
             make Copy.new(:@sources, :$destination);
+        }
+
+        method instruction:sym<ARG>($/) {
+            make Arg.new(
+                name => ~$<name>,
+                default => $<default> ?? ~$<default> !! Str
+            );
         }
 
         method file-list($/) {
