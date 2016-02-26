@@ -73,6 +73,10 @@ class Docker::File {
         has Instruction $.build;
     }
 
+    class Expose does Instruction[EXPOSE] {
+        has Int @.ports;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -173,6 +177,10 @@ class Docker::File {
                { die X::Docker::File::OnBuild.new(bad-instruction => ~$<bad>) }
             || <instruction>
             ]
+        }
+
+        token instruction:sym<EXPOSE> {
+            <sym> \h+ [$<port>=[\d+]]+ %% [\h+] \n
         }
 
         token shell-or-exec($instruction) {
@@ -284,6 +292,10 @@ class Docker::File {
 
         method instruction:sym<ONBUILD>($/) {
             make OnBuild.new(build => $<instruction>.made);
+        }
+
+        method instruction:sym<EXPOSE>($/) {
+            make Expose.new(ports => $<port>.map(+*));
         }
 
         method arglist($/) {

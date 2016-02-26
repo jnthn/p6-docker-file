@@ -283,4 +283,30 @@ for <<FROM ubuntu  MAINTAINER Melaina  ONBUILD "RUN /bin/sh">> -> $ins, $arg {
         bad-instruction => $ins;
 }
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        EXPOSE 1234
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Expose, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::EXPOSE, 'Correct instruction';
+    is $ins.ports, [1234], 'Correct port';
+}, 'EXPOSE, single port';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        EXPOSE 1234 5679 3579
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Expose, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::EXPOSE, 'Correct instruction';
+    is $ins.ports, [1234, 5679, 3579], 'Correct ports';
+}, 'EXPOSE, multiple ports';
+
 done-testing;
