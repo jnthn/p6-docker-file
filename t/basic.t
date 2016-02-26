@@ -309,4 +309,60 @@ subtest {
     is $ins.ports, [1234, 5679, 3579], 'Correct ports';
 }, 'EXPOSE, multiple ports';
 
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ADD foo.txt /var/stuff
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Add, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ADD, 'Correct instruction';
+    is $ins.sources, ['foo.txt'], 'Correct sources';
+    is $ins.destination, '/var/stuff', 'Correct destination';
+}, 'ADD, non-array form, single file';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ADD foo.txt bar.txt /var/stuff
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Add, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ADD, 'Correct instruction';
+    is $ins.sources, <foo.txt bar.txt>, 'Correct sources';
+    is $ins.destination, '/var/stuff', 'Correct destination';
+}, 'ADD, non-array form, multiple files';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ADD ["foo.txt", "/var/stuff with space"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Add, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ADD, 'Correct instruction';
+    is $ins.sources, ['foo.txt'], 'Correct sources';
+    is $ins.destination, '/var/stuff with space', 'Correct destination';
+}, 'ADD, array form, single file';
+
+subtest {
+    my $file = Docker::File.parse: q:to/DOCKER/;
+        FROM ubuntu
+        ADD ["foo.txt", "bar.txt", "/var/stuff with space"]
+        DOCKER
+    is $file.images.elems, 1, 'Parsed successfully';
+    is $file.images[0].instructions.elems, 1, '1 instruction';
+    my $ins = $file.images[0].instructions[0];
+    isa-ok $ins, Docker::File::Add, 'Correct type';
+    is $ins.instruction, Docker::File::InstructionName::ADD, 'Correct instruction';
+    is $ins.sources, <foo.txt bar.txt>, 'Correct sources';
+    is $ins.destination, '/var/stuff with space', 'Correct destination';
+}, 'ADD, array form, multiple files';
+
 done-testing;

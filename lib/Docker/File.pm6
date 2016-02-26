@@ -77,6 +77,11 @@ class Docker::File {
         has Int @.ports;
     }
 
+    class Add does Instruction[ADD] {
+        has Str @.sources;
+        has Str $.destination;
+    }
+
     class Image {
         has Str $.from-short;
         has Str $.from-tag;
@@ -183,9 +188,18 @@ class Docker::File {
             <sym> \h+ [$<port>=[\d+]]+ %% [\h+] \n
         }
 
+        token instruction:sym<ADD> {
+            <sym> \h+ <file-list('ADD')> \h* \n
+        }
+
         token shell-or-exec($instruction) {
             | <?[[]> <exec=.arglist($instruction)>
             | {} <shell=.multiline-command>
+        }
+
+        token file-list($instruction) {
+            | <?[[]> <arglist($instruction)>
+            | {} [$<file>=[\S+]]+ % [\h+]
         }
 
         token arglist($instruction) {
@@ -296,6 +310,21 @@ class Docker::File {
 
         method instruction:sym<EXPOSE>($/) {
             make Expose.new(ports => $<port>.map(+*));
+        }
+
+        method instruction:sym<ADD>($/) {
+            my @sources = $<file-list>.made;
+            my $destination = @sources.pop;
+            make Add.new(:@sources, :$destination);
+        }
+
+        method file-list($/) {
+            with $<arglist> {
+                make .made;
+            }
+            else {
+                make $<file>.map(~*);
+            }
         }
 
         method arglist($/) {
