@@ -39,4 +39,22 @@ is
         FROM ubuntu@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf
         EXPECTED
 
+sub simple-image(Docker::File::Instruction $ins) {
+    Docker::File.new(
+        images => [
+            Docker::File::Image.new(
+                from-short => 'ubuntu',
+                entries => [$ins]
+            )
+        ]
+    )
+}
+
+is
+    simple-image(Docker::File::Maintainer.new(name => 'Jonathan <jnthn@jnthn.net>')),
+    q:to/EXPECTED/, 'MAINTAINER';
+        FROM ubuntu
+        MAINTAINER Jonathan <jnthn@jnthn.net>
+        EXPECTED
+
 done-testing;

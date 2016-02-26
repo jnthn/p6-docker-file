@@ -26,6 +26,10 @@ class Docker::File {
 
     class Maintainer does Instruction[MAINTAINER] {
         has Str $.name;
+
+        method Str(Maintainer:D:) {
+            "MAINTAINER $!name"
+        }
     }
 
     class RunShell does Instruction[RUN] {
