@@ -50,10 +50,18 @@ class Docker::File {
 
     class CommandShell does Instruction[CMD] {
         has Str $.command;
+
+        method Str(CommandShell:D:) {
+            "CMD $!command"
+        }
     }
 
     class CommandExec does Instruction[CMD] {
         has Str @.args;
+
+        method Str(CommandExec:D:) {
+            "CMD &json-array(@!args)"
+        }
     }
 
     class EntryPointShell does Instruction[ENTRYPOINT] {
