@@ -82,10 +82,18 @@ class Docker::File {
 
     class User does Instruction[USER] {
         has Str $.username;
+
+        method Str(User:D:) {
+            "USER $!username"
+        }
     }
 
     class WorkDir does Instruction[WORKDIR] {
         has Str $.dir;
+
+        method Str(WorkDir:D:) {
+            "WORKDIR $!dir"
+        }
     }
 
     subset SignalIdentifier where -> $sig {
@@ -95,6 +103,10 @@ class Docker::File {
 
     class StopSignal does Instruction[STOPSIGNAL] {
         has SignalIdentifier $.signal;
+
+        method Str(StopSignal:D:) {
+            "STOPSIGNAL $!signal"
+        }
     }
 
     class OnBuild does Instruction[ONBUILD] {

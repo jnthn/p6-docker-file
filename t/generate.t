@@ -122,4 +122,33 @@ is
         FROM ubuntu
         ENTRYPOINT ["\"quoted\"", "with\newline", "and \\\\slash"]
         EXPECTED
+
+is
+    simple-image(Docker::File::User.new(username => 'daemon')),
+    q:to/EXPECTED/, 'USER';
+        FROM ubuntu
+        USER daemon
+        EXPECTED
+
+is
+    simple-image(Docker::File::WorkDir.new(dir => '/var/lol')),
+    q:to/EXPECTED/, 'WORKDIR';
+        FROM ubuntu
+        WORKDIR /var/lol
+        EXPECTED
+
+is
+    simple-image(Docker::File::StopSignal.new(signal => 9)),
+    q:to/EXPECTED/, 'STOPSIGNAL (integer)';
+    FROM ubuntu
+    STOPSIGNAL 9
+    EXPECTED
+
+is
+    simple-image(Docker::File::StopSignal.new(signal => 'SIGKILL')),
+    q:to/EXPECTED/, 'STOPSIGNAL (name)';
+    FROM ubuntu
+    STOPSIGNAL SIGKILL
+    EXPECTED
+
 done-testing;
