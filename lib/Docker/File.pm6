@@ -111,10 +111,18 @@ class Docker::File {
 
     class OnBuild does Instruction[ONBUILD] {
         has Instruction $.build;
+
+        method Str(OnBuild:D:) {
+            "ONBUILD $!build"
+        }
     }
 
     class Expose does Instruction[EXPOSE] {
         has Int @.ports;
+
+        method Str(Expose:D:) {
+            "EXPOSE @!ports.join(' ')"
+        }
     }
 
     class Add does Instruction[ADD] {

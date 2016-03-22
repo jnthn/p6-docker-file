@@ -151,4 +151,27 @@ is
     STOPSIGNAL SIGKILL
     EXPECTED
 
+is
+    simple-image(Docker::File::OnBuild.new(build =>
+        Docker::File::RunShell.new(command =>
+            '/usr/local/bin/python-build --dir /app/src'))),
+    q:to/EXPECTED/, 'ONBUILD';
+    FROM ubuntu
+    ONBUILD RUN /usr/local/bin/python-build --dir /app/src
+    EXPECTED
+
+is
+    simple-image(Docker::File::Expose.new(ports => 5000)),
+    q:to/EXPECTED/, 'EXPOSE (one port)';
+    FROM ubuntu
+    EXPOSE 5000
+    EXPECTED
+
+is
+    simple-image(Docker::File::Expose.new(ports => (5001, 5002, 5005))),
+    q:to/EXPECTED/, 'EXPOSE (many ports)';
+    FROM ubuntu
+    EXPOSE 5001 5002 5005
+    EXPECTED
+
 done-testing;
