@@ -34,10 +34,18 @@ class Docker::File {
 
     class RunShell does Instruction[RUN] {
         has Str $.command;
+
+        method Str(RunShell:D:) {
+            "RUN $!command"
+        }
     }
 
     class RunExec does Instruction[RUN] {
         has Str @.args;
+
+        method Str(RunExec:D:) {
+            "RUN &json-array(@!args)"
+        }
     }
 
     class CommandShell does Instruction[CMD] {
@@ -106,6 +114,19 @@ class Docker::File {
 
     class Env does Instruction[ENV] {
         has Str %.variables;
+    }
+
+    sub json-array(@arr) {
+        '[' ~ @arr.map(&json-string).join(", ") ~ "]"
+    }
+    sub json-string(Str $value) {
+        '"' ~ $value
+            .trans(['"',  '\\',   "\b", "\f", "\n", "\r", "\t"]
+                => ['\"', '\\\\', '\b', '\f', '\n', '\r', '\t'])\
+            .subst(/<-[\c32..\c126]>/, {
+                    $_.Str.encode('utf-16').values».fmt('\u%04x').join
+                }, :g)
+        ~ '"'
     }
 
     class Image {

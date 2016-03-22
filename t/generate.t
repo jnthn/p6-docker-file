@@ -57,4 +57,26 @@ is
         MAINTAINER Jonathan <jnthn@jnthn.net>
         EXPECTED
 
+is
+    simple-image(Docker::File::RunShell.new(command => 'sudo apt-get install perl6')),
+    q:to/EXPECTED/, 'RUN (shell)';
+        FROM ubuntu
+        RUN sudo apt-get install perl6
+        EXPECTED
+
+is
+    simple-image(Docker::File::RunExec.new(args => <sudo apt-get install perl6>)),
+    q:to/EXPECTED/, 'RUN (exec)';
+        FROM ubuntu
+        RUN ["sudo", "apt-get", "install", "perl6"]
+        EXPECTED
+
+is
+    simple-image(Docker::File::RunExec.new(
+        args => ['"quoted"', "with\newline", "and \\slash"])),
+    q:to/EXPECTED/, 'RUN (exec, quotes/escaping)';
+        FROM ubuntu
+        RUN ["\"quoted\"", "with\newline", "and \\\\slash"]
+        EXPECTED
+
 done-testing;
