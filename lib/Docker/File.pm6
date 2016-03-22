@@ -146,6 +146,15 @@ class Docker::File {
     class Arg does Instruction[ARG] {
         has Str $.name;
         has Cool $.default;
+
+        method Str(Arg:D:) {
+            with $!default {
+                "ARG $!name=$_"
+            }
+            else {
+                "ARG $!name"
+            }
+        }
     }
 
     class Label does Instruction[LABEL] {

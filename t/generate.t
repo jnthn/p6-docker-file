@@ -234,4 +234,25 @@ is
     COPY ["ISS", "/a/spaced out/place"]
     EXPECTED
 
+is
+    simple-image(Docker::File::Arg.new(name => 'user1')),
+    q:to/EXPECTED/, 'ARG (no default)';
+    FROM ubuntu
+    ARG user1
+    EXPECTED
+
+is
+    simple-image(Docker::File::Arg.new(name => 'user1', default => 'bob')),
+    q:to/EXPECTED/, 'ARG (default)';
+    FROM ubuntu
+    ARG user1=bob
+    EXPECTED
+
+is
+    simple-image(Docker::File::Arg.new(name => 'buildno', default => 0)),
+    q:to/EXPECTED/, 'ARG (default that is Perl 6 false should still be emitted)';
+    FROM ubuntu
+    ARG buildno=0
+    EXPECTED
+
 done-testing;
