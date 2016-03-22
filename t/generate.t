@@ -101,4 +101,25 @@ is
         CMD ["\"quoted\"", "with\newline", "and \\\\slash"]
         EXPECTED
 
+is
+    simple-image(Docker::File::EntryPointShell.new(command => 'perl6 app.p6')),
+    q:to/EXPECTED/, 'ENTRYPOINT (shell)';
+        FROM ubuntu
+        ENTRYPOINT perl6 app.p6
+        EXPECTED
+
+is
+    simple-image(Docker::File::EntryPointExec.new(args => <perl6 app.p6>)),
+    q:to/EXPECTED/, 'ENTRYPOINT (exec)';
+        FROM ubuntu
+        ENTRYPOINT ["perl6", "app.p6"]
+        EXPECTED
+
+is
+    simple-image(Docker::File::EntryPointExec.new(
+        args => ['"quoted"', "with\newline", "and \\slash"])),
+    q:to/EXPECTED/, 'ENTRYPOINT (exec, quotes/escaping)';
+        FROM ubuntu
+        ENTRYPOINT ["\"quoted\"", "with\newline", "and \\\\slash"]
+        EXPECTED
 done-testing;

@@ -66,10 +66,18 @@ class Docker::File {
 
     class EntryPointShell does Instruction[ENTRYPOINT] {
         has Str $.command;
+
+        method Str(EntryPointShell:D:) {
+            "ENTRYPOINT $!command"
+        }
     }
 
     class EntryPointExec does Instruction[ENTRYPOINT] {
         has Str @.args;
+
+        method Str(EntryPointExec:D:) {
+            "ENTRYPOINT &json-array(@!args)"
+        }
     }
 
     class User does Instruction[USER] {
