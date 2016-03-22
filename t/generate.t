@@ -174,4 +174,64 @@ is
     EXPOSE 5001 5002 5005
     EXPECTED
 
+is
+    simple-image(Docker::File::Add.new(
+        sources => ('avast', 'mateys'),
+        destination => '/ab/so/loot'
+    )),
+    q:to/EXPECTED/, 'ADD (multiple sources, no spaces in name)';
+    FROM ubuntu
+    ADD avast mateys /ab/so/loot
+    EXPECTED
+
+is
+    simple-image(Docker::File::Add.new(
+        sources => 'omg space',
+        destination => 'rel/ative'
+    )),
+    q:to/EXPECTED/, 'ADD (source with space in)';
+    FROM ubuntu
+    ADD ["omg space", "rel/ative"]
+    EXPECTED
+
+is
+    simple-image(Docker::File::Add.new(
+        sources => 'ISS',
+        destination => '/a/spaced out/place'
+    )),
+    q:to/EXPECTED/, 'ADD (destination with spaces in)';
+    FROM ubuntu
+    ADD ["ISS", "/a/spaced out/place"]
+    EXPECTED
+
+is
+    simple-image(Docker::File::Copy.new(
+        sources => ('avast', 'mateys'),
+        destination => '/ab/so/loot'
+    )),
+    q:to/EXPECTED/, 'COPY (multiple sources, no spaces in name)';
+    FROM ubuntu
+    COPY avast mateys /ab/so/loot
+    EXPECTED
+
+is
+    simple-image(Docker::File::Copy.new(
+        sources => 'omg space',
+        destination => 'rel/ative'
+    )),
+    q:to/EXPECTED/, 'COPY (source with space in)';
+    FROM ubuntu
+    COPY ["omg space", "rel/ative"]
+    EXPECTED
+
+is
+    simple-image(Docker::File::Copy.new(
+        sources => 'ISS',
+        destination => '/a/spaced out/place'
+    )),
+    q:to/EXPECTED/, 'COPY (destination with spaces in)';
+    FROM ubuntu
+    COPY ["ISS", "/a/spaced out/place"]
+    EXPECTED
+
 done-testing;

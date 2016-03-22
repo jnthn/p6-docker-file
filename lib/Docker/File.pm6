@@ -128,11 +128,19 @@ class Docker::File {
     class Add does Instruction[ADD] {
         has Str @.sources;
         has Str $.destination;
+
+        method Str(Add:D:) {
+            "ADD &json-array-if-spacey(@!sources, $!destination)"
+        }
     }
 
     class Copy does Instruction[COPY] {
         has Str @.sources;
         has Str $.destination;
+
+        method Str(Copy:D:) {
+            "COPY &json-array-if-spacey(@!sources, $!destination)"
+        }
     }
 
     class Arg does Instruction[ARG] {
@@ -152,6 +160,11 @@ class Docker::File {
         has Str %.variables;
     }
 
+    sub json-array-if-spacey(*@values) {
+        any(@values) ~~ /\s/
+            ?? json-array(@values)
+            !! join ' ', @values
+    }
     sub json-array(@arr) {
         '[' ~ @arr.map(&json-string).join(", ") ~ "]"
     }
