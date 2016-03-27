@@ -176,6 +176,10 @@ class Docker::File {
 
     class Volume does Instruction[VOLUME] {
         has Str @.volumes;
+
+        method Str(Volume:D:) {
+            'VOLUME ' ~ json-array(@!volumes)
+        }
     }
 
     class Env does Instruction[ENV] {

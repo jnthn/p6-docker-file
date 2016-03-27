@@ -287,4 +287,18 @@ is
     baz"
     EXPECTED
 
+is
+    simple-image(Docker::File::Volume.new(volumes => '/data')),
+    q:to/EXPECTED/, 'VOLUME (one)';
+    FROM ubuntu
+    VOLUME ["/data"]
+    EXPECTED
+    
+is
+    simple-image(Docker::File::Volume.new(volumes => ['/data', '/var/log'])),
+    q:to/EXPECTED/, 'VOLUME (two)';
+    FROM ubuntu
+    VOLUME ["/data", "/var/log"]
+    EXPECTED
+
 done-testing;
