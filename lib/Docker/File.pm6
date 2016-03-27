@@ -162,15 +162,12 @@ class Docker::File {
 
         method Str(Label:D:) {
             "LABEL " ~ %!labels
-                .map({ "&quote-if-ws(.key)=&quote(.value)" })
+                .map({ "&quote-if-ws(.key)=&simple-quote(.value)" })
                 .join(" ")
         }
 
         sub quote-if-ws($value) {
-            $value ~~ /\s/ ?? quote($value) !! $value
-        }
-        sub quote($value) {
-            '"' ~ $value.trans(["\n", "\\", "\""] => ["\\\n", "\\\\", "\\\""]) ~ '"'
+            $value ~~ /\s/ ?? simple-quote($value) !! $value
         }
     }
 
@@ -184,6 +181,12 @@ class Docker::File {
 
     class Env does Instruction[ENV] {
         has Str %.variables;
+
+        method Str(Env:D:) {
+            "ENV " ~ %!variables
+                .map({ "{.key}=&simple-quote(.value)" })
+                .join(" ")
+        }
     }
 
     sub json-array-if-spacey(*@values) {
@@ -202,6 +205,9 @@ class Docker::File {
                     $_.Str.encode('utf-16').values».fmt('\u%04x').join
                 }, :g)
         ~ '"'
+    }
+    sub simple-quote($value) {
+        '"' ~ $value.trans(["\n", "\\", "\""] => ["\\\n", "\\\\", "\\\""]) ~ '"'
     }
 
     class Image {

@@ -301,4 +301,21 @@ is
     VOLUME ["/data", "/var/log"]
     EXPECTED
 
+is
+    simple-image(Docker::File::Env.new(variables => ('foo' => 'bar'))),
+    q:to/EXPECTED/, 'ENV (one)';
+    FROM ubuntu
+    ENV foo="bar"
+    EXPECTED
+    
+is
+    simple-image(Docker::File::Env.new(variables => ('foo' => 'bar', 'bat' => 'man'))),
+    any(q:to/EXPECTED-1/, q:to/EXPECTED-2/), 'ENV (two)';
+    FROM ubuntu
+    ENV foo="bar" bat="man"
+    EXPECTED-1
+    FROM ubuntu
+    ENV bat="man" foo="bar"
+    EXPECTED-2
+
 done-testing;
