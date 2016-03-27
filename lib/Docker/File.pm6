@@ -48,18 +48,18 @@ class Docker::File {
         }
     }
 
-    class CommandShell does Instruction[CMD] {
+    class CmdShell does Instruction[CMD] {
         has Str $.command;
 
-        multi method Str(CommandShell:D:) {
+        multi method Str(CmdShell:D:) {
             "CMD $!command"
         }
     }
 
-    class CommandExec does Instruction[CMD] {
+    class CmdExec does Instruction[CMD] {
         has Str @.args;
 
-        multi method Str(CommandExec:D:) {
+        multi method Str(CmdExec:D:) {
             "CMD &json-array(@!args)"
         }
     }
@@ -450,10 +450,10 @@ class Docker::File {
 
         method instruction:sym<CMD>($/) {
             with $<shell-or-exec><shell> {
-                make CommandShell.new(command => .made);
+                make CmdShell.new(command => .made);
             }
             orwith $<shell-or-exec><exec> {
-                make CommandExec.new(args => .made);
+                make CmdExec.new(args => .made);
             }
         }
 

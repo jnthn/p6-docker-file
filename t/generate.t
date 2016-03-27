@@ -80,21 +80,21 @@ is
         EXPECTED
 
 is
-    simple-image(Docker::File::CommandShell.new(command => 'perl6 app.p6')),
+    simple-image(Docker::File::CmdShell.new(command => 'perl6 app.p6')),
     q:to/EXPECTED/, 'CMD (shell)';
         FROM ubuntu
         CMD perl6 app.p6
         EXPECTED
 
 is
-    simple-image(Docker::File::CommandExec.new(args => <perl6 app.p6>)),
+    simple-image(Docker::File::CmdExec.new(args => <perl6 app.p6>)),
     q:to/EXPECTED/, 'CMD (exec)';
         FROM ubuntu
         CMD ["perl6", "app.p6"]
         EXPECTED
 
 is
-    simple-image(Docker::File::CommandExec.new(
+    simple-image(Docker::File::CmdExec.new(
         args => ['"quoted"', "with\newline", "and \\slash"])),
     q:to/EXPECTED/, 'CMD (exec, quotes/escaping)';
         FROM ubuntu

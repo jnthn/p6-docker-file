@@ -118,7 +118,7 @@ subtest {
     is $file.images.elems, 1, 'Parsed successfully';
     is $file.images[0].instructions.elems, 1, '1 instruction';
     my $ins = $file.images[0].instructions[0];
-    isa-ok $ins, Docker::File::CommandShell, 'Correct type';
+    isa-ok $ins, Docker::File::CmdShell, 'Correct type';
     is $ins.instruction, Docker::File::InstructionName::CMD, 'Correct instruction';
     is $ins.command, 'echo "This is a test." | wc -', 'Correct command';
 }, 'CMD instruction, shell form';
@@ -132,7 +132,7 @@ subtest {
     is $file.images.elems, 1, 'Parsed successfully';
     is $file.images[0].instructions.elems, 1, '1 instruction';
     my $ins = $file.images[0].instructions[0];
-    isa-ok $ins, Docker::File::CommandShell, 'Correct type';
+    isa-ok $ins, Docker::File::CmdShell, 'Correct type';
     is $ins.instruction, Docker::File::InstructionName::CMD, 'Correct instruction';
     is $ins.command, 'echo "This is a test." | wc -', 'Correct command';
 }, 'CMD instruction, shell form multi-line';
@@ -145,7 +145,7 @@ subtest {
     is $file.images.elems, 1, 'Parsed successfully';
     is $file.images[0].instructions.elems, 1, '1 instruction';
     my $ins = $file.images[0].instructions[0];
-    isa-ok $ins, Docker::File::CommandExec, 'Correct type';
+    isa-ok $ins, Docker::File::CmdExec, 'Correct type';
     is $ins.instruction, Docker::File::InstructionName::CMD, 'Correct instruction';
     is $ins.args, </usr/bin/wc --help>, 'Correct args';
 }, 'CMD instruction, exec form';
