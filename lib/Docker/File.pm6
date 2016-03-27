@@ -27,7 +27,7 @@ class Docker::File {
     class Maintainer does Instruction[MAINTAINER] {
         has Str $.name;
 
-        method Str(Maintainer:D:) {
+        multi method Str(Maintainer:D:) {
             "MAINTAINER $!name"
         }
     }
@@ -35,7 +35,7 @@ class Docker::File {
     class RunShell does Instruction[RUN] {
         has Str $.command;
 
-        method Str(RunShell:D:) {
+        multi method Str(RunShell:D:) {
             "RUN $!command"
         }
     }
@@ -43,7 +43,7 @@ class Docker::File {
     class RunExec does Instruction[RUN] {
         has Str @.args;
 
-        method Str(RunExec:D:) {
+        multi method Str(RunExec:D:) {
             "RUN &json-array(@!args)"
         }
     }
@@ -51,7 +51,7 @@ class Docker::File {
     class CommandShell does Instruction[CMD] {
         has Str $.command;
 
-        method Str(CommandShell:D:) {
+        multi method Str(CommandShell:D:) {
             "CMD $!command"
         }
     }
@@ -59,7 +59,7 @@ class Docker::File {
     class CommandExec does Instruction[CMD] {
         has Str @.args;
 
-        method Str(CommandExec:D:) {
+        multi method Str(CommandExec:D:) {
             "CMD &json-array(@!args)"
         }
     }
@@ -67,7 +67,7 @@ class Docker::File {
     class EntryPointShell does Instruction[ENTRYPOINT] {
         has Str $.command;
 
-        method Str(EntryPointShell:D:) {
+        multi method Str(EntryPointShell:D:) {
             "ENTRYPOINT $!command"
         }
     }
@@ -75,7 +75,7 @@ class Docker::File {
     class EntryPointExec does Instruction[ENTRYPOINT] {
         has Str @.args;
 
-        method Str(EntryPointExec:D:) {
+        multi method Str(EntryPointExec:D:) {
             "ENTRYPOINT &json-array(@!args)"
         }
     }
@@ -83,7 +83,7 @@ class Docker::File {
     class User does Instruction[USER] {
         has Str $.username;
 
-        method Str(User:D:) {
+        multi method Str(User:D:) {
             "USER $!username"
         }
     }
@@ -91,7 +91,7 @@ class Docker::File {
     class WorkDir does Instruction[WORKDIR] {
         has Str $.dir;
 
-        method Str(WorkDir:D:) {
+        multi method Str(WorkDir:D:) {
             "WORKDIR $!dir"
         }
     }
@@ -104,7 +104,7 @@ class Docker::File {
     class StopSignal does Instruction[STOPSIGNAL] {
         has SignalIdentifier $.signal;
 
-        method Str(StopSignal:D:) {
+        multi method Str(StopSignal:D:) {
             "STOPSIGNAL $!signal"
         }
     }
@@ -112,7 +112,7 @@ class Docker::File {
     class OnBuild does Instruction[ONBUILD] {
         has Instruction $.build;
 
-        method Str(OnBuild:D:) {
+        multi method Str(OnBuild:D:) {
             "ONBUILD $!build"
         }
     }
@@ -120,7 +120,7 @@ class Docker::File {
     class Expose does Instruction[EXPOSE] {
         has Int @.ports;
 
-        method Str(Expose:D:) {
+        multi method Str(Expose:D:) {
             "EXPOSE @!ports.join(' ')"
         }
     }
@@ -129,7 +129,7 @@ class Docker::File {
         has Str @.sources;
         has Str $.destination;
 
-        method Str(Add:D:) {
+        multi method Str(Add:D:) {
             "ADD &json-array-if-spacey(@!sources, $!destination)"
         }
     }
@@ -138,7 +138,7 @@ class Docker::File {
         has Str @.sources;
         has Str $.destination;
 
-        method Str(Copy:D:) {
+        multi method Str(Copy:D:) {
             "COPY &json-array-if-spacey(@!sources, $!destination)"
         }
     }
@@ -147,7 +147,7 @@ class Docker::File {
         has Str $.name;
         has Cool $.default;
 
-        method Str(Arg:D:) {
+        multi method Str(Arg:D:) {
             with $!default {
                 "ARG $!name=$_"
             }
@@ -160,7 +160,7 @@ class Docker::File {
     class Label does Instruction[LABEL] {
         has Str %.labels;
 
-        method Str(Label:D:) {
+        multi method Str(Label:D:) {
             "LABEL " ~ %!labels
                 .map({ "&quote-if-ws(.key)=&simple-quote(.value)" })
                 .join(" ")
@@ -174,7 +174,7 @@ class Docker::File {
     class Volume does Instruction[VOLUME] {
         has Str @.volumes;
 
-        method Str(Volume:D:) {
+        multi method Str(Volume:D:) {
             'VOLUME ' ~ json-array(@!volumes)
         }
     }
@@ -182,7 +182,7 @@ class Docker::File {
     class Env does Instruction[ENV] {
         has Str %.variables;
 
-        method Str(Env:D:) {
+        multi method Str(Env:D:) {
             "ENV " ~ %!variables
                 .map({ "{.key}=&simple-quote(.value)" })
                 .join(" ")
