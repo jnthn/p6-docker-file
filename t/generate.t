@@ -255,4 +255,36 @@ is
     ARG buildno=0
     EXPECTED
 
+is
+    simple-image(Docker::File::Label.new(labels => ('foo.bar' => 'baz'))),
+    q:to/EXPECTED/, 'LABEL (one k/v without whitespace)';
+    FROM ubuntu
+    LABEL foo.bar="baz"
+    EXPECTED
+
+is
+    simple-image(Docker::File::Label.new(labels => ('foo bar' => 'baz'))),
+    q:to/EXPECTED/, 'LABEL (one k/v with whitespace in key)';
+    FROM ubuntu
+    LABEL "foo bar"="baz"
+    EXPECTED
+
+is
+    simple-image(Docker::File::Label.new(labels => (foo => 'bar', bat => 'man'))),
+    any(q:to/EXPECTED-1/, q:to/EXPECTED-2/), 'LABEL (two key/value pairs)';
+    FROM ubuntu
+    LABEL foo="bar" bat="man"
+    EXPECTED-1
+    FROM ubuntu
+    LABEL bat="man" foo="bar"
+    EXPECTED-2
+
+is
+    simple-image(Docker::File::Label.new(labels => ('foo' => "bar\nbaz"))),
+    q:to/EXPECTED/, 'LABEL (value has newline)';
+    FROM ubuntu
+    LABEL foo="bar\
+    baz"
+    EXPECTED
+
 done-testing;

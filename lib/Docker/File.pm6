@@ -159,6 +159,19 @@ class Docker::File {
 
     class Label does Instruction[LABEL] {
         has Str %.labels;
+
+        method Str(Label:D:) {
+            "LABEL " ~ %!labels
+                .map({ "&quote-if-ws(.key)=&quote(.value)" })
+                .join(" ")
+        }
+
+        sub quote-if-ws($value) {
+            $value ~~ /\s/ ?? quote($value) !! $value
+        }
+        sub quote($value) {
+            '"' ~ $value.trans(["\n", "\\", "\""] => ["\\\n", "\\\\", "\\\""]) ~ '"'
+        }
     }
 
     class Volume does Instruction[VOLUME] {
